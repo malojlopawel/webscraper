@@ -3,7 +3,7 @@ import requests
 import os
 import json
 from playwright.async_api import async_playwright
-from sys import exit
+
 class GauguinScraper:
   def __init__(self,
                url="https://digitalprojects.wpi.art/gauguin/artworks?page=1",
