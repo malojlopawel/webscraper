@@ -3,7 +3,7 @@ import requests
 import os
 import json
 from playwright.async_api import async_playwright
-
+from sys import exit
 class GauguinScraper:
   def __init__(self,
                url="https://digitalprojects.wpi.art/gauguin/artworks?page=1",
@@ -69,7 +69,7 @@ class GauguinScraper:
             pagination = await self.find_el(
                 'cpd-controls-pagination > button:last-child')
             await pagination.click()
-            time.sleep(1)
+            time.sleep(5)
         print(f"{i}\n\n\n")
         el = await self.find_els(
             '.artwork-search-results > article:not(.not-included) > a')
@@ -81,14 +81,16 @@ class GauguinScraper:
 
 
 
-  async def get_image(self):
-      image = await self.find_el(".not-full-screen-image-container > img")
-      image = await image.get_attribute('srcset')
-      image = image.split(",")[0].split(" ")[0]
+  async def get_image(self, href):
+      image = "null"
       i = 0
-      while image == "null" and i < 10:
-          image = await self.find_el(
-              ".not-full-screen-image-container > img")
+      while image == "null" and i < 30:
+          try:
+            image = await self.find_el(
+                ".not-full-screen-image-container > img")
+          except Exception as e:
+              print(f"Error: {e}\n\nOn page: {href}")
+              return None
           image = await image.get_attribute('srcset')
           image = image.split(",")[0].split(" ")[0]
           time.sleep(0.5)
@@ -198,15 +200,14 @@ class GauguinScraper:
       for index, href in enumerate(self.hrefs):
           print(f"Processing artwork {index + 1}/{len(self.hrefs)}: {href}")
           await self.go_to(f"{self.base_url}{href}")
-          image = await self.get_image()
+          image = await self.get_image(href)
+          if not image:
+              continue
           title = await self.get_title()
           get_info = await self.get_info()
           provenance = await self.get_provenance()
           exhibitions = await self.get_exhibitions()
           bibliography = await self.get_bibliography()
-
-
-
 
           self.curl_image(image, index)
           self.data.append({
