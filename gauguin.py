@@ -128,7 +128,7 @@ class GauguinScraper:
 
 
   async def get_info(self):
-      info = await self.find_els("article[_ngcontent-ng-c2311764719] p > p")
+      info = await self.find_els("article p > p")
       return {
           "date": await info[0].inner_text(),
           "technique": await info[1].inner_text(),
@@ -225,9 +225,14 @@ class GauguinScraper:
               "bibliography": bibliography,
           })
 
-
 if __name__ == "__main__":
-   import asyncio
-   scraper = GauguinScraper()
-   asyncio.run(scraper.scrape())
+    import asyncio
 
+    scraper = GauguinScraper()
+
+    try:
+        asyncio.run(scraper.scrape())
+    except KeyboardInterrupt:
+        print("\nExecution interrupted. Saving collected data...")
+        scraper.save_data()
+        print("Data saved")
